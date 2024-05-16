@@ -19,7 +19,7 @@ jobs:
         node-version: '18'
 
     - name: Install dependencies
-      run: npm install compress-images imagemin-pngquant imagemin-webp
+      run: npm install imagemin imagemin-pngquant imagemin-webp imagemin-mozjpeg
 
     - name: Minify CSS and JS files
       uses: JossyDevers/minify-js@v1.0.1
@@ -34,17 +34,28 @@ jobs:
     - name: Compress images
       run: |
         node -e "
-          const compress_images = require('compress-images');
-          compress_images('**/*.{png,PNG,ico,ICO,webp,WEBP}', 'compressed/', {compress_force: false, statistic: true, autoupdate: true}, false,
-            {png: {engine: 'pngquant', command: ['--quality=20-50']}}, 
-            {ico: {engine: 'pngquant', command: ['--quality=20-50']}}, 
-            {webp: {engine: 'cwebp', command: ['-q', '50']}}, 
-            {}, 
-            function(error) { 
-              if (error) console.error('Error:', error); 
-              else console.log('Images compressed successfully!'); 
-            }
-          );
+          const imagemin = require('imagemin');
+          const imageminPngquant = require('imagemin-pngquant');
+          const imageminWebp = require('imagemin-webp');
+          const imageminMozjpeg = require('imagemin-mozjpeg');
+
+          (async () => {
+            await imagemin(['**/*.{png,PNG,ico,ICO,webp,WEBP}'], {
+              destination: 'compressed/',
+              plugins: [
+                imageminPngquant({
+                  quality: [0.2, 0.5]
+                }),
+                imageminWebp({
+                  quality: 50
+                }),
+                imageminMozjpeg({
+                  quality: 75
+                })
+              ]
+            });
+            console.log('Images compressed successfully!');
+          })();
         "
 
     - name: Commit and push changes
