@@ -1,4 +1,4 @@
-name: Minify and Compress
+name: Minify and Compress Assets
 
 on:
   push:
@@ -6,50 +6,45 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+      - uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '16'
+      - name: Minify CSS
+        uses: cssnano/cssnano-action@v2
+        with:
+          # Optional: Path to your CSS files, defaults to '**/*.css'
+          source: .
 
-    - name: Install dependencies
-      run: npm install -g clean-css-cli terser imagemin imagemin-cli imagemin-pngquant imagemin-mozjpeg imagemin-webp
+      - name: Minify JS
+        uses: runcloud/action-js-minify@v1
+        with:
+          # Optional: Path to your JS files, defaults to '**/*.js'
+          source: .
 
-    - name: Minify CSS
-      run: |
-        for file in *.css; do
-          cleancss -o "$file" "$file"
-        done
+      - name: Optimize PNG Images
+        uses: JakeBolam/pongo@v1.1.2
+        with:
+          source: .
+          # Optional: Path to your PNG files, defaults to '**/*.png'
 
-    - name: Minify JS
-      run: |
-        for file in *.js; do
-          terser "$file" -o "$file"
-        done
+      - name: Optimize ICO Images
+        uses: JakeBolam/pongo@v1.1.2
+        with:
+          source: .
+          # Optional: Path to your ICO files, defaults to '**/*.ico'
 
-    - name: Compress images
-      run: imagemin *.{png,ico,webp} --out-dir=.
+      - name: Optimize WebP Images
+        uses: JakeBolam/pongo@v1.1.2
+        with:
+          source: .
+          # Optional: Path to your WebP files, defaults to '**/*.webp'
 
-    - name: Checkout static branch
-      run: |
-        git checkout -b static || git checkout static
-        git pull origin static || echo "No static branch"
-
-    - name: Sync files to static branch
-      run: |
-        rsync -av --exclude='.git*' --exclude='node_modules' --exclude='.github' . .
-
-    - name: Commit and push changes
-      uses: ad-m/github-push-action@v0.6.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: static
-        force: true
+      - name: Deploy to static branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: static
+          force_orphan: true
