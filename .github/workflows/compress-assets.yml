@@ -16,7 +16,7 @@ jobs:
     - name: Setup Node.js environment
       uses: actions/setup-node@v2
       with:
-        node-version: '18'  # 更新到Node.js 18
+        node-version: '18'
 
     - name: Install dependencies
       run: |
@@ -33,7 +33,9 @@ jobs:
     - name: Minify JS
       run: |
         for file in *.js; do
-          npx uglifyjs $file -o minified/$file --compress --mangle
+          if [[ $file != node_modules/* ]]; then
+            npx uglifyjs $file -o minified/$file --compress --mangle
+          fi
         done
 
     - name: Compress Images
@@ -41,6 +43,8 @@ jobs:
         npx imagemin *.png *.ico *.webp --plugin=pngquant --plugin=webp --plugin=zopfli --out-dir=minified
 
     - name: Push to static branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --global user.name 'github-actions'
         git config --global user.email 'github-actions@github.com'
