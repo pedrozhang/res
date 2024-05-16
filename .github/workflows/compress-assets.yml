@@ -20,8 +20,10 @@ jobs:
       uses: nizarmah/auto-minify@v3
       with:
         overwrite: true
-        
-    - name: Commit and push changes
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with: 
-        branch: minify
+
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: .
+        publish_branch: minify
