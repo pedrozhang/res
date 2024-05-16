@@ -39,13 +39,8 @@ jobs:
     - name: Compress images
       run: imagemin *.{png,ico,webp} --out-dir=.
 
-    - name: Commit and push changes
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git checkout -b static || git checkout static
-        git add .
-        git commit -m 'Minify CSS/JS and compress images'
-        git push origin static --force
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Push changes
+      uses: ad-m/github-push-action@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: static
