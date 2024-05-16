@@ -3,7 +3,7 @@ name: Compress and Minify Assets
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build:
