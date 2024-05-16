@@ -25,4 +25,3 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v5
       with: 
         branch: minify
-        create_branch: true
