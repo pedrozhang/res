@@ -1,67 +1,28 @@
-name: Compress and Minify Assets
+name: Minify Assets
 
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
+    permissions:
+      contents: write
+      
     steps:
     - name: Check out repository
       uses: actions/checkout@v2
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
+      
+    - name: auto minify the files
+      uses: nizarmah/auto-minify@v3
       with:
-        node-version: '18'
-
-    - name: Install dependencies
-      run: npm install imagemin imagemin-pngquant imagemin-webp imagemin-mozjpeg
-
-    - name: Minify CSS and JS files
-      uses: JossyDevers/minify-js@v1.0.1
-      with:
-        directory: '.'
-        output: '.'
-        add_suffix: false
-        inclusions: |
-          .*\.css$
-          .*\.js$
-
-    - name: Compress images
-      run: |
-        echo 'import("imagemin").then(imagemin => {
-          import("imagemin-pngquant").then(imageminPngquant => {
-            import("imagemin-webp").then(imageminWebp => {
-              import("imagemin-mozjpeg").then(imageminMozjpeg => {
-                (async () => {
-                  await imagemin.default(["**/*.{png,PNG,ico,ICO,webp,WEBP}"], {
-                    destination: "compressed/",
-                    plugins: [
-                      imageminPngquant.default({ quality: [0.2, 0.5] }),
-                      imageminWebp.default({ quality: 50 }),
-                      imageminMozjpeg.default({ quality: 75 })
-                    ]
-                  });
-                  console.log("Images compressed successfully!");
-                })();
-              });
-            });
-          });
-        })' | node
-
+        overwrite: true
+        
     - name: Commit and push changes
-      uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: 'Minified and compressed assets'
-        branch: static
-        file_pattern: |
-          *.css
-          *.js
-          compressed/**
-        commit_user_name: github-actions
-        commit_user_email: github-actions@github.com
-        token: ${{ secrets.GITHUB_TOKEN }}
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with: 
+        branch: minify
+        create_branch: true
