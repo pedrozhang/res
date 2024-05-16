@@ -41,17 +41,15 @@ jobs:
 
     - name: Checkout static branch
       run: |
-        git fetch origin static || echo "No static branch"
-        git checkout static || git checkout --orphan static
+        git checkout -b static || git checkout static
+        git pull origin static || echo "No static branch"
 
     - name: Sync files to static branch
       run: |
-        rsync -av --exclude='.git*' --exclude='node_modules' --exclude='.github' . ../static/
-      working-directory: .
+        rsync -av --exclude='.git*' --exclude='node_modules' --exclude='.github' . .
 
     - name: Commit and push changes
       run: |
-        cd ../static
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add .
