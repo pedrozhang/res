@@ -1,4 +1,4 @@
-name: Minify and Compress
+name: Minify and Compress Assets
 
 on:
   push:
@@ -10,43 +10,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v1
+    - name: Setup Node.js environment
+      uses: actions/setup-node@v2
       with:
-        node-version: '14'
+        node-version: '16'
 
-    - name: Install Dependencies
+    - name: Install dependencies
       run: |
-        npm install -g clean-css-cli uglify-js
-        sudo apt-get install pngquant webp
+        npm install -g yarn
+        yarn add css-minify uglify-js imagemin-cli imagemin-pngquant imagemin-webp imagemin-zopfli
 
     - name: Minify CSS
       run: |
-        find . -name "*.css" -exec cleancss -o {} {} ;
+        mkdir -p minified
+        for file in *.css; do
+          css-minify -f $file -o minified/
+        done
 
     - name: Minify JS
       run: |
-        find . -name "*.js" -exec uglifyjs {} --compress --mangle --output {} ;
+        for file in *.js; do
+          uglifyjs $file -o minified/$file --compress --mangle
+        done
 
-    - name: Compress PNG and ICO
+    - name: Compress Images
       run: |
-        find . -type f ( -iname *.png -o -iname *.ico ) -exec pngquant --force --output {} -- {} ;
+        imagemin *.png *.ico *.webp --plugin=pngquant --plugin=webp --plugin=zopfli --out-dir=minified
 
-    - name: Compress WEBP
+    - name: Push to static branch
       run: |
-        find . -type f -iname *.webp -exec cwebp -q 80 {} -o {} ;
-
-    - name: Commit files
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+        git checkout -b static
+        mv minified/* .
         git add .
-        git commit -m "Compress assets"
-
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: static
+        git commit -m "Minify and compress assets"
+        git push --force --set-upstream origin static
