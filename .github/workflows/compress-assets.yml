@@ -1,4 +1,4 @@
-name: Minify and Compress Assets
+name: Optimize Assets
 
 on:
   push:
@@ -6,45 +6,32 @@ on:
       - main
 
 jobs:
-  build:
+  optimize:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Minify CSS
-        uses: cssnano/cssnano-action@v2
+      # Minify CSS and JS files
+      - name: Minify CSS, JS, and HTML
+        uses: amireshoon/minifyAction@v1.1
         with:
-          # Optional: Path to your CSS files, defaults to '**/*.css'
-          source: .
+          repo: ${{ github.repository }}
 
-      - name: Minify JS
-        uses: runcloud/action-js-minify@v1
+      # Compress PNG, ICO, and WebP images
+      - name: Compress Images
+        uses: crush-pics/crush-pics-github-action@v1.0
         with:
-          # Optional: Path to your JS files, defaults to '**/*.js'
-          source: .
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          api-key: ${{ secrets.CRUSH_API_KEY }}
 
-      - name: Optimize PNG Images
-        uses: JakeBolam/pongo@v1.1.2
-        with:
-          source: .
-          # Optional: Path to your PNG files, defaults to '**/*.png'
-
-      - name: Optimize ICO Images
-        uses: JakeBolam/pongo@v1.1.2
-        with:
-          source: .
-          # Optional: Path to your ICO files, defaults to '**/*.ico'
-
-      - name: Optimize WebP Images
-        uses: JakeBolam/pongo@v1.1.2
-        with:
-          source: .
-          # Optional: Path to your WebP files, defaults to '**/*.webp'
-
-      - name: Deploy to static branch
-        uses: peaceiris/actions-gh-pages@v3
+      # Push changes to the static branch
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.6.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          publish_branch: static
-          force_orphan: true
+          branch: static
+          force: true
+          commit_message: "Optimize CSS, JS, and images"
