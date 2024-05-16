@@ -1,46 +1,52 @@
-name: Minify and Compress Assets
+name: Minify and Compress
 
 on:
   push:
     branches:
-      - main # 替换成你存放源码的分支
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: 14
-          cache: 'npm'
+    - uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: npm install uglify-js clean-css imagemin-pngquant imagemin-webp imagemin-cli
+    - name: Set up Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: '14'
 
-      - name: Minify CSS
-        run: npx clean-css --output static/style.css style.css
+    - name: Install Dependencies
+      run: |
+        npm install -g clean-css-cli uglify-js
+        sudo apt-get install pngquant webp
 
-      - name: Minify JS
-        run: npx uglifyjs script.js -o static/script.js
+    - name: Minify CSS
+      run: |
+        find . -name "*.css" -exec cleancss -o {} {} ;
 
-      - name: Compress images
-        run: |
-          npx imagemin *.png static --plugin=pngquant
-          npx imagemin *.ico static --plugin=pngquant
-          npx imagemin *.webp static --plugin=webp
+    - name: Minify JS
+      run: |
+        find . -name "*.js" -exec uglifyjs {} --compress --mangle --output {} ;
 
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v7
-        with:
-          message: 'Compress assets'
-          add: 'static/*'
-          branch: static
+    - name: Compress PNG and ICO
+      run: |
+        find . -type f ( -iname *.png -o -iname *.ico ) -exec pngquant --force --output {} -- {} ;
 
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: static
+    - name: Compress WEBP
+      run: |
+        find . -type f -iname *.webp -exec cwebp -q 80 {} -o {} ;
+
+    - name: Commit files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Compress assets"
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: static
