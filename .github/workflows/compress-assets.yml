@@ -12,6 +12,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -37,10 +40,12 @@ jobs:
       run: imagemin *.{png,ico,webp} --out-dir=.
 
     - name: Commit and push changes
-      uses: stefanzweifel/git-auto-commit-action@v4
-      with:
-        commit_message: 'Minify CSS/JS and compress images'
-        branch: static
-        commit_user_name: github-actions[bot]
-        commit_user_email: github-actions[bot]@users.noreply.github.com
-        token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git checkout -b static || git checkout static
+        git add .
+        git commit -m 'Minify CSS/JS and compress images'
+        git push origin static --force
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
