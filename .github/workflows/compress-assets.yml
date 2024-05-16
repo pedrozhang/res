@@ -3,7 +3,7 @@ name: Compress and Minify Assets
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
@@ -12,6 +12,14 @@ jobs:
     steps:
     - name: Check out repository
       uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install compress-images imagemin-pngquant imagemin-webp
 
     - name: Minify CSS and JS files
       uses: JossyDevers/minify-js@v1.0.1
@@ -25,7 +33,6 @@ jobs:
 
     - name: Compress images
       run: |
-        npm install compress-images
         node -e "
           const compress_images = require('compress-images');
           compress_images('**/*.{png,PNG,ico,ICO,webp,WEBP}', 'compressed/', {compress_force: false, statistic: true, autoupdate: true}, false,
