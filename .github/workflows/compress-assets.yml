@@ -44,12 +44,14 @@ jobs:
         git fetch origin static || echo "No static branch"
         git checkout static || git checkout --orphan static
 
-    - name: Copy files to static branch
+    - name: Sync files to static branch
       run: |
-        cp *.css *.js *.png *.ico *.webp .
+        rsync -av --exclude='.git*' --exclude='node_modules' --exclude='*.yml' . ../static/
+      working-directory: .
 
     - name: Commit and push changes
       run: |
+        cd ../static
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add .
