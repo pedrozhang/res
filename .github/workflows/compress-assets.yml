@@ -1,37 +1,54 @@
-name: Optimize Assets
+name: Compress and Minify Assets
 
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
-  optimize:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Check out repository
+      uses: actions/checkout@v2
 
-      # Minify CSS and JS files
-      - name: Minify CSS, JS, and HTML
-        uses: amireshoon/minifyAction@v1.1
-        with:
-          repo: ${{ github.repository }}
+    - name: Minify CSS and JS files
+      uses: JossyDevers/minify-js@v1.0.1
+      with:
+        directory: '.'
+        output: '.'
+        add_suffix: false
+        inclusions: |
+          .*\.css$
+          .*\.js$
 
-      # Compress PNG, ICO, and WebP images
-      - name: Compress Images
-        uses: crush-pics/crush-pics-github-action@v1.0
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          api-key: ${{ secrets.CRUSH_API_KEY }}
+    - name: Compress images
+      run: |
+        npm install compress-images
+        node -e "
+          const compress_images = require('compress-images');
+          compress_images('**/*.{png,PNG,ico,ICO,webp,WEBP}', 'compressed/', {compress_force: false, statistic: true, autoupdate: true}, false,
+            {png: {engine: 'pngquant', command: ['--quality=20-50']}}, 
+            {ico: {engine: 'pngquant', command: ['--quality=20-50']}}, 
+            {webp: {engine: 'cwebp', command: ['-q', '50']}}, 
+            {}, 
+            function(error) { 
+              if (error) console.error('Error:', error); 
+              else console.log('Images compressed successfully!'); 
+            }
+          );
+        "
 
-      # Push changes to the static branch
-      - name: Push changes
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: static
-          force: true
-          commit_message: "Optimize CSS, JS, and images"
+    - name: Commit and push changes
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: 'Minified and compressed assets'
+        branch: static
+        file_pattern: |
+          *.css
+          *.js
+          compressed/**
+        commit_user_name: github-actions
+        commit_user_email: github-actions@github.com
+        token: ${{ secrets.GITHUB_TOKEN }}
