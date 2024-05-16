@@ -1,0 +1,51 @@
+name: Minify and Compress Assets
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install dependencies
+        run: npm install uglify-js clean-css imagemin-pngquant imagemin-webp imagemin-cli
+
+      - name: Minify CSS
+        run: |
+          CLEAN_CSS_PATH=$(npm bin)/clean-css
+          $CLEAN_CSS_PATH --output static/style.css style.css
+
+      # Minify JS
+      - name: Minify JS
+        run: npx uglifyjs script.js -o static/script.js
+
+      # Compress images
+      - name: Compress images
+        run: |
+          npx imagemin *.png static --plugin=pngquant
+          npx imagemin *.ico static --plugin=pngquant
+          npx imagemin *.webp static --plugin=webp
+
+      # Commit and push to static branch
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v7
+        with:
+          message: 'Compress assets'
+          add: 'static/*'
+          branch: static
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: static
