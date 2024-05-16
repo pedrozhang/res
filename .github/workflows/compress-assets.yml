@@ -39,8 +39,9 @@ jobs:
     - name: Compress images
       run: imagemin *.{png,ico,webp} --out-dir=.
 
-    - name: Push changes
-      uses: ad-m/github-push-action@v1
+    - name: Commit and push changes
+      uses: github-actions-x/commit@v1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         branch: static
+        commit-message: 'Minify CSS/JS and compress images'
