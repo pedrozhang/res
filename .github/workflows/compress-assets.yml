@@ -36,11 +36,11 @@ jobs:
     - name: Compress images
       run: imagemin *.{png,ico,webp} --out-dir=.
 
-    - name: Push to static branch
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git checkout -b static
-        git add .
-        git commit -m 'Minify CSS/JS and compress images'
-        git push -f origin static
+    - name: Commit and push changes
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: 'Minify CSS/JS and compress images'
+        branch: static
+        commit_user_name: github-actions[bot]
+        commit_user_email: github-actions[bot]@users.noreply.github.com
+        token: ${{ secrets.GITHUB_TOKEN }}
