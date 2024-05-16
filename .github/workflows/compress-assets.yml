@@ -3,7 +3,7 @@ name: Compress and Minify Assets
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build:
@@ -33,30 +33,25 @@ jobs:
 
     - name: Compress images
       run: |
-        node -e "
-          const imagemin = require('imagemin');
-          const imageminPngquant = require('imagemin-pngquant');
-          const imageminWebp = require('imagemin-webp');
-          const imageminMozjpeg = require('imagemin-mozjpeg');
-
-          (async () => {
-            await imagemin(['**/*.{png,PNG,ico,ICO,webp,WEBP}'], {
-              destination: 'compressed/',
-              plugins: [
-                imageminPngquant({
-                  quality: [0.2, 0.5]
-                }),
-                imageminWebp({
-                  quality: 50
-                }),
-                imageminMozjpeg({
-                  quality: 75
-                })
-              ]
+        echo 'import("imagemin").then(imagemin => {
+          import("imagemin-pngquant").then(imageminPngquant => {
+            import("imagemin-webp").then(imageminWebp => {
+              import("imagemin-mozjpeg").then(imageminMozjpeg => {
+                (async () => {
+                  await imagemin.default(["**/*.{png,PNG,ico,ICO,webp,WEBP}"], {
+                    destination: "compressed/",
+                    plugins: [
+                      imageminPngquant.default({ quality: [0.2, 0.5] }),
+                      imageminWebp.default({ quality: 50 }),
+                      imageminMozjpeg.default({ quality: 75 })
+                    ]
+                  });
+                  console.log("Images compressed successfully!");
+                })();
+              });
             });
-            console.log('Images compressed successfully!');
-          })();
-        "
+          });
+        })' | node
 
     - name: Commit and push changes
       uses: stefanzweifel/git-auto-commit-action@v4
