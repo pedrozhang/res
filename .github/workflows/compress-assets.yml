@@ -46,7 +46,7 @@ jobs:
 
     - name: Sync files to static branch
       run: |
-        rsync -av --exclude='.git*' --exclude='node_modules' --exclude='*.yml' . ../static/
+        rsync -av --exclude='.git*' --exclude='node_modules' --exclude='.github' . ../static/
       working-directory: .
 
     - name: Commit and push changes
