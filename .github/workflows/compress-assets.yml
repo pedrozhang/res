@@ -27,18 +27,18 @@ jobs:
       run: |
         mkdir -p minified
         for file in *.css; do
-          css-minify -f $file -o minified/
+          npx css-minify -f $file -o minified/
         done
 
     - name: Minify JS
       run: |
         for file in *.js; do
-          uglifyjs $file -o minified/$file --compress --mangle
+          npx uglifyjs $file -o minified/$file --compress --mangle
         done
 
     - name: Compress Images
       run: |
-        imagemin *.png *.ico *.webp --plugin=pngquant --plugin=webp --plugin=zopfli --out-dir=minified
+        npx imagemin *.png *.ico *.webp --plugin=pngquant --plugin=webp --plugin=zopfli --out-dir=minified
 
     - name: Push to static branch
       run: |
