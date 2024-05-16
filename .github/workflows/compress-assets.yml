@@ -41,12 +41,12 @@ jobs:
 
     - name: Checkout static branch
       run: |
-        git fetch origin
-        if git show-ref --verify --quiet refs/heads/static; then
-          git checkout static
-        else
-          git checkout --orphan static
-        fi
+        git fetch origin static || echo "No static branch"
+        git checkout static || git checkout --orphan static
+
+    - name: Copy files to static branch
+      run: |
+        cp *.css *.js *.png *.ico *.webp .
 
     - name: Commit and push changes
       run: |
