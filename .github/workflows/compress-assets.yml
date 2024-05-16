@@ -22,23 +22,25 @@ jobs:
       run: npm install -g clean-css-cli terser imagemin imagemin-cli imagemin-pngquant imagemin-mozjpeg imagemin-webp
 
     - name: Minify CSS
-      run: cleancss -o styles.min.css styles.css
+      run: |
+        for file in *.css; do
+          cleancss -o "$file" "$file"
+        done
 
     - name: Minify JS
-      run: terser script.js -o script.min.js
+      run: |
+        for file in *.js; do
+          terser "$file" -o "$file"
+        done
 
     - name: Compress images
-      run: imagemin images/*.{png,ico,webp} --out-dir=compressed-images
+      run: imagemin *.{png,ico,webp} --out-dir=.
 
-    - name: Commit minified and compressed files
+    - name: Push to static branch
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        mkdir -p static
-        mv styles.min.css static/styles.min.css
-        mv script.min.js static/script.min.js
-        cp compressed-images/* static/
         git checkout -b static
-        git add static/*
+        git add .
         git commit -m 'Minify CSS/JS and compress images'
         git push -f origin static
