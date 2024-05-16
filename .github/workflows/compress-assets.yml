@@ -6,12 +6,15 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -36,40 +39,21 @@ jobs:
     - name: Compress images
       run: imagemin *.{png,ico,webp} --out-dir=.
 
-    - name: Upload compressed files
-      uses: actions/upload-artifact@v3
-      with:
-        name: compressed-files
-        path: |
-          *.css
-          *.js
-          *.png
-          *.ico
-          *.webp
-
-  push:
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
     - name: Checkout static branch
-      uses: actions/checkout@v3
-      with:
-        ref: static
-        token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Download compressed files
-      uses: actions/download-artifact@v3
-      with:
-        name: compressed-files
-        path: .
+      run: |
+        git fetch origin
+        if git show-ref --verify --quiet refs/heads/static; then
+          git checkout static
+        else
+          git checkout --orphan static
+        fi
 
     - name: Commit and push changes
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add .
-        git commit -m 'Minify CSS/JS and compress images'
-        git push origin static
+        git commit -m 'Minify CSS/JS and compress images' || echo "No changes to commit"
+        git push origin static --force
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
