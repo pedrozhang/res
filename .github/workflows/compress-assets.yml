@@ -27,3 +27,10 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: .
         publish_branch: minify
+
+    - uses: gacts/purge-jsdelivr-cache@v1
+      with:
+        url: |
+          https://cdn.jsdelivr.net/gh/pedrozhang/res@minify/script.js
+          https://cdn.jsdelivr.net/gh/pedrozhang/res@minify/style.css
+          https://cdn.jsdelivr.net/gh/pedrozhang/res@minify/bg.webp
