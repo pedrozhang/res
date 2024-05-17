@@ -55,6 +55,12 @@ $(document).ready(function() {
             arg1Input.removeClass('is-invalid');
             arg1TooltipVisible = hideTooltip(arg1Icon, arg1TooltipTimeout, arg1TooltipVisible);
             return false;
+        } else if (!/^[a-zA-Z0-9_]*$/.test(value)) {
+            arg1Input.addClass('is-invalid');
+            arg1TooltipTimeout = setTimeout(() => {
+                arg1TooltipVisible = showTooltip(arg1Icon, 'Invalid input. Only letters, numbers, and underscores are allowed.', arg1TooltipVisible, arg1TooltipTimeout);
+            }, 1000);
+            isValid = false;
         } else if (invalidArg1Values.includes(value)) {
             arg1Input.addClass('is-invalid');
             arg1TooltipTimeout = setTimeout(() => {
