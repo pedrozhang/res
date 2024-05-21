@@ -198,14 +198,15 @@ $(document).ready(function() {
             } else if (event.data.startsWith("FILE:")) {
                 const filePath = event.data.substring(5).trim();
                 const fileName = filePath.split('/').pop();
+                const subdir = filePath.split('/').slice(-2, -1).join('');
                 $('#file-name').html(fileName).off('click').on('click', function() {
-                    window.location.href = `/download/${fileName}`;
+                    window.location.href = `/download/${subdir}/${fileName}`;
                 });
                 $('#file').removeClass('hidden');
                 $('#loading-bar').addClass('hidden');
                 $('#status').addClass('hidden').html('');
                 setTimeout(() => {
-                    window.location.href = `/download/${fileName}`;
+                    window.location.href = `/download/${subdir}/${fileName}`;
                 }, 100);
             } else {
                 if (inErrorSection) {
